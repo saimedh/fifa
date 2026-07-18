@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#0b1220" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; connect-src 'self' http://localhost:8000 ws://localhost:8000 wss://localhost:8000 https://*.supabase.co; img-src 'self' data: https:;" />
+
+    <!-- SEO -->
+    <title>Stadium Copilot — FIFA World Cup 2026 GenAI Ops Platform</title>
+    <meta name="description" content="AI-powered stadium operations platform for FIFA World Cup 2026. Role-aware multilingual assistant, real-time crowd intelligence, and instant accessibility support." />
+    <meta name="keywords" content="FIFA 2026, World Cup, stadium assistant, AI, GenAI, crowd management, accessibility" />
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="Stadium Copilot — FIFA World Cup 2026" />
+    <meta property="og:description" content="AI-powered stadium operations. Multilingual assistant, crowd intelligence, accessibility support." />
+    <meta property="og:type" content="website" />
+
+    <!-- Google Fonts: Google Sans (Product Sans) + Inter + Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Google+Sans+Display:wght@400;500;700&family=Inter:wght@400;500;600;700;800;900&family=Outfit:wght@400;500;600;700;800;900&display=swap" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Google+Sans+Display:wght@400;500;700&family=Inter:wght@400;500;600;700;800;900&family=Outfit:wght@400;500;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+    <!-- Anthropic Fonts (local install fallback) -->
+    <style>
+      @font-face {
+        font-family: 'Anthropic Sans';
+        src: local('Anthropic Sans'), local('AnthropicSans');
+        font-weight: 100 900;
+        font-display: swap;
+      }
+      @font-face {
+        font-family: 'Anthropic Serif';
+        src: local('Anthropic Serif'), local('AnthropicSerif');
+        font-weight: 100 900;
+        font-display: swap;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
