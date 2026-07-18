@@ -1,0 +1,38 @@
+# render.yaml — Stadium Copilot Backend Blueprint
+# Docs: https://render.com/docs/blueprint-spec
+# To deploy: go to https://dashboard.render.com/blueprints and connect your saimedh/fifa repo.
+
+services:
+  - type: web
+    name: stadium-copilot-api
+    runtime: docker
+    dockerfilePath: ./api/Dockerfile
+    dockerContext: ./api
+    plan: free
+    region: oregon
+
+    # Health check — Render uses this to confirm the service is up
+    healthCheckPath: /health
+
+    # Environment variables — set real values in the Render dashboard
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+
+      - key: ALLOWED_ORIGINS
+        value: https://stadium-copilot-pearl.vercel.app,https://stadium-copilot.vercel.app
+
+      # Football-data.org API key — already in your .env
+      - key: FOOTBALL_DATA_API_KEY
+        value: 83f71bc33cc74fef99110fa731e2aad5
+
+      # These are optional — add real DB connection strings in Render dashboard
+      # to enable persistent storage. The app works without them (simulated data).
+      - key: DATABASE_URL
+        value: ""
+      - key: MONGODB_URL
+        value: ""
+      - key: REDIS_URL
+        value: ""
+      - key: OPS_API_KEY
+        generateValue: true
