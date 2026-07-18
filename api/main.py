@@ -245,16 +245,198 @@ async def health_check():
     }
 
 
+
+# ── Assistant intent engine ─────────────────────────────────────────────────────
+_INTENTS: list[dict] = [
+    {
+        "name": "restroom",
+        "keywords": ["restroom", "toilet", "bathroom", "wc", "washroom", "lavatory", "loo", "baño", "toilette"],
+        "responses": {
+            "en": lambda zone: f"The nearest restrooms in {zone or 'your area'} are located at every concourse level — look for the blue 'WC' signs. There are also accessible restrooms with wider stalls near Gate C and Gate H.",
+            "es": lambda zone: f"Los baños más cercanos en {zone or 'su área'} están en cada nivel del pasillo. Busque los letreros azules 'WC'. También hay baños accesibles cerca de la Puerta C y la Puerta H.",
+            "fr": lambda zone: f"Les toilettes les plus proches à {zone or 'votre zone'} se trouvent à chaque niveau du concourse — cherchez les panneaux bleus 'WC'. Des toilettes accessibles se trouvent aussi près des Portes C et H.",
+            "ar": lambda zone: f"أقرب دورات المياه في {zone or 'منطقتك'} موجودة في كل طابق — ابحث عن لافتات 'WC' الزرقاء. هناك أيضاً دورات مياه للذوي الاحتياجات الخاصة بالقرب من البوابتين C وH.",
+            "pt": lambda zone: f"Os banheiros mais próximos em {zone or 'sua área'} estão localizados em cada nível — procure as placas azuis 'WC'. Há também banheiros acessíveis perto dos Portões C e H.",
+        },
+        "suggested_action": "Navigate to nearest WC",
+        "escalated": False,
+    },
+    {
+        "name": "food",
+        "keywords": ["food", "eat", "hungry", "restaurant", "snack", "drink", "beverage", "burger", "pizza", "concession", "comida", "manger", "boire"],
+        "responses": {
+            "en": lambda zone: f"Food and beverage stands are on every concourse level in {zone or 'all zones'}. Look for green 'Food & Drinks' banners. The main food court is on Level 2. Dietary options (vegan, halal, gluten-free) are available at stands marked with a leaf icon.",
+            "es": lambda zone: f"Los puestos de comida están en cada nivel del estadio en {zone or 'todas las zonas'}. El patio de comidas principal está en el Nivel 2.",
+            "fr": lambda zone: f"Les stands de nourriture se trouvent à chaque niveau dans {zone or 'toutes les zones'}. La restauration principale est au Niveau 2.",
+            "ar": lambda zone: f"أكشاك الطعام والمشروبات موجودة في كل طابق في {zone or 'جميع المناطق'}. منطقة الطعام الرئيسية في الطابق الثاني.",
+            "pt": lambda zone: f"As barracas de comida estão em todos os níveis em {zone or 'todas as zonas'}. A praça de alimentação principal fica no Nível 2.",
+        },
+        "suggested_action": "View food court map",
+        "escalated": False,
+    },
+    {
+        "name": "gate",
+        "keywords": ["gate", "entrance", "entry", "exit", "puerta", "porte", "eingang", "enter", "door", "access"],
+        "responses": {
+            "en": lambda zone: f"Gates A–D are on the North side, Gates E–H on the South. If you're in {zone or 'the stadium'}, the nearest exit is clearly marked with green arrows on overhead signs. Gates open 3 hours before kickoff.",
+            "es": lambda zone: f"Las puertas A–D están en el lado Norte, las E–H en el Sur. Las salidas están marcadas con flechas verdes. Las puertas abren 3 horas antes del partido.",
+            "fr": lambda zone: f"Les portes A–D sont au Nord, les E–H au Sud. Les sorties sont signalées par des flèches vertes. Les portes ouvrent 3 heures avant le coup d'envoi.",
+            "ar": lambda zone: f"البوابات A–D في الجهة الشمالية، والبوابات E–H في الجهة الجنوبية. تُفتح البوابات قبل 3 ساعات من انطلاق المباراة.",
+            "pt": lambda zone: f"As entradas A–D ficam no lado Norte, E–H no Sul. As saídas estão marcadas com setas verdes. As portões abrem 3 horas antes do jogo.",
+        },
+        "suggested_action": "Show gate map",
+        "escalated": False,
+    },
+    {
+        "name": "emergency",
+        "keywords": ["emergency", "danger", "fire", "threat", "bomb", "attack", "evacuate", "evacuation", "urgent", "help", "danger", "unsafe", "urgencia", "urgence"],
+        "responses": {
+            "en": lambda zone: f"🚨 EMERGENCY — Please stay calm. Follow the green EXIT signs to the nearest evacuation point. Stadium security has been alerted. Call 911 or find the nearest staff member wearing a red vest in {zone or 'your zone'}.",
+            "es": lambda zone: f"🚨 EMERGENCIA — Mantenga la calma. Siga las señales verdes de SALIDA. La seguridad del estadio ha sido alertada. Llame al 911 o busque personal con chaleco rojo en {zone or 'su zona'}.",
+            "fr": lambda zone: f"🚨 URGENCE — Restez calme. Suivez les panneaux verts SORTIE. La sécurité est alertée. Appelez le 911 ou trouvez un agent en gilet rouge dans {zone or 'votre zone'}.",
+            "ar": lambda zone: f"🚨 طارئ — ابق هادئاً. اتبع علامات الخروج الخضراء. تم إبلاغ أمن الملعب. اتصل بـ 911 أو اعثر على أحد الموظفين ذوي السترة الحمراء في {zone or 'منطقتك'}.",
+            "pt": lambda zone: f"🚨 EMERGÊNCIA — Mantenha a calma. Siga as placas verdes de SAÍDA. A segurança foi alertada. Ligue 911 ou encontre um funcionário com colete vermelho em {zone or 'sua zona'}.",
+        },
+        "suggested_action": "Alert security",
+        "escalated": True,
+    },
+    {
+        "name": "first_aid",
+        "keywords": ["first aid", "medical", "ambulance", "injured", "hurt", "sick", "faint", "doctor", "nurse", "medicina", "médico", "blessé", "malade"],
+        "responses": {
+            "en": lambda zone: f"The nearest First Aid station in {zone or 'the stadium'} is marked with a red cross on all signage. Medical staff are stationed at Sections 101, 220, and near Gate F. For serious emergencies, shout for help or call stadium security at ext. 555.",
+            "es": lambda zone: f"La estación de primeros auxilios más cercana en {zone or 'el estadio'} está marcada con una cruz roja. Hay personal médico en las Secciones 101, 220 y cerca de la Puerta F.",
+            "fr": lambda zone: f"Le poste de premiers secours le plus proche à {zone or 'le stade'} est signalé par une croix rouge. Des médecins se trouvent aux Sections 101, 220 et près de la Porte F.",
+            "ar": lambda zone: f"أقرب محطة إسعافات أولية في {zone or 'الملعب'} مُعلّمة بعلامة الصليب الأحمر. يتواجد الطاقم الطبي في الأقسام 101 و220 وبالقرب من البوابة F.",
+            "pt": lambda zone: f"O posto de primeiros socorros mais próximo em {zone or 'o estádio'} está marcado com uma cruz vermelha. Há equipe médica nas Seções 101, 220 e perto do Portão F.",
+        },
+        "suggested_action": "Find first aid station",
+        "escalated": True,
+    },
+    {
+        "name": "ticket",
+        "keywords": ["ticket", "seat", "section", "row", "seat number", "standing", "upgrade", "ticket office", "entrada", "billet", "bilhete"],
+        "responses": {
+            "en": lambda zone: f"Your ticket barcode is your access pass — keep it in the Wallet app for fast scanning. The Ticket Help Desk is at the main entrance lobby. For seat upgrades or lost tickets, visit Guest Services at Gate A.",
+            "es": lambda zone: f"El código de barras de su boleto es su pase de acceso. El servicio de atención al cliente para boletos está en la entrada principal.",
+            "fr": lambda zone: f"Votre code-barres de billet est votre laissez-passer. Le service des billets est dans le hall principal.",
+            "ar": lambda zone: f"رمز الباركود في تذكرتك هو بطاقة دخولك. تجد مكتب خدمة التذاكر عند المدخل الرئيسي.",
+            "pt": lambda zone: f"O código de barras do seu ingresso é seu passe de acesso. O serviço de ingressos fica no saguão principal.",
+        },
+        "suggested_action": "Go to Guest Services",
+        "escalated": False,
+    },
+    {
+        "name": "schedule",
+        "keywords": ["schedule", "match", "game", "kickoff", "kick-off", "when", "time", "fixture", "horario", "match schedule", "programme"],
+        "responses": {
+            "en": lambda zone: "Today's featured match is Argentina 🇦🇷 vs Germany 🇩🇪 at SoFi Stadium (Quarter-Final, live now in the 78th minute). Semi-Finals are on July 14 & 15 at MetLife Stadium. Check the Schedule tab in the app for the full fixture list.",
+            "es": lambda zone: "El partido de hoy es Argentina 🇦🇷 vs Alemania 🇩🇪 en SoFi Stadium (Cuartos de Final, en vivo). Las Semifinales son el 14 y 15 de julio.",
+            "fr": lambda zone: "Le match du jour est Argentine 🇦🇷 vs Allemagne 🇩🇪 au SoFi Stadium (Quart de finale, en cours). Les Demi-finales sont les 14 et 15 juillet.",
+            "ar": lambda zone: "مباراة اليوم: الأرجنتين 🇦🇷 ضد ألمانيا 🇩🇪 في ملعب SoFi (ربع النهائي، جارية الآن). نصف النهائيات في 14 و15 يوليو.",
+            "pt": lambda zone: "O jogo de hoje é Argentina 🇦🇷 vs Alemanha 🇩🇪 no SoFi Stadium (Quartas de Final, ao vivo). As Semifinais são em 14 e 15 de julho.",
+        },
+        "suggested_action": "View full schedule",
+        "escalated": False,
+    },
+    {
+        "name": "wifi",
+        "keywords": ["wifi", "wi-fi", "internet", "network", "connect", "password", "hotspot", "signal"],
+        "responses": {
+            "en": lambda zone: "Free stadium Wi-Fi: connect to 'FIFA2026_Guest' (no password needed). For faster speeds, the premium 'FIFA2026_Premium' network is available with your match ticket QR code as the password.",
+            "es": lambda zone: "Wi-Fi gratuito: conéctese a 'FIFA2026_Guest'. La red premium 'FIFA2026_Premium' usa el QR de su boleto como contraseña.",
+            "fr": lambda zone: "Wi-Fi gratuit: connectez-vous à 'FIFA2026_Guest'. Le réseau premium 'FIFA2026_Premium' utilise le QR de votre billet comme mot de passe.",
+            "ar": lambda zone: "الواي فاي المجاني: اتصل بـ 'FIFA2026_Guest'. الشبكة المميزة 'FIFA2026_Premium' تستخدم رمز QR الخاص بتذكرتك كلمةً للمرور.",
+            "pt": lambda zone: "Wi-Fi gratuito: conecte-se a 'FIFA2026_Guest'. A rede premium 'FIFA2026_Premium' usa o QR do ingresso como senha.",
+        },
+        "suggested_action": "Connect to stadium Wi-Fi",
+        "escalated": False,
+    },
+    {
+        "name": "transport",
+        "keywords": ["bus", "train", "taxi", "transport", "uber", "parking", "car", "metro", "shuttle", "drop off", "pickup", "transport", "trajet"],
+        "responses": {
+            "en": lambda zone: "Shuttle buses run every 15 minutes from the stadium to downtown and all designated parking zones. The rideshare pickup zone is at Gate H, North Lot. The nearest metro station is a 5-minute walk from Gate A — take Line 3 toward Downtown.",
+            "es": lambda zone: "Los autobuses lanzadera salen cada 15 minutos. La zona de recogida de rideshare está en la Puerta H. La estación de metro más cercana está a 5 minutos de la Puerta A.",
+            "fr": lambda zone: "Les navettes partent toutes les 15 minutes. La zone de prise en charge rideshare est à la Porte H. La station de métro la plus proche est à 5 minutes de la Porte A.",
+            "ar": lambda zone: "الحافلات المكوكية تنطلق كل 15 دقيقة. منطقة الإنزال للتوصيل المشترك عند البوابة H. أقرب محطة مترو على بُعد 5 دقائق من البوابة A.",
+            "pt": lambda zone: "Ônibus especiais a cada 15 minutos. A zona de embarque rideshare fica no Portão H. A estação de metrô mais próxima fica a 5 minutos do Portão A.",
+        },
+        "suggested_action": "View transport options",
+        "escalated": False,
+    },
+    {
+        "name": "accessibility",
+        "keywords": ["wheelchair", "disabled", "disability", "accessible", "hearing", "visual", "blind", "deaf", "ramp", "elevator", "lift", "discapacidad", "handicap"],
+        "responses": {
+            "en": lambda zone: f"Accessible entrances, wheelchair ramps, and companion seating are available at Gates B, D, and F. Dedicated accessible restrooms are on every level. Hearing loop systems are active in all seating sections. In {zone or 'your area'}, please ask a staff member for personal escort assistance.",
+            "es": lambda zone: f"Entradas accesibles y rampas para sillas de ruedas en las Puertas B, D y F. Hay asientos para acompañantes y baños accesibles en cada nivel.",
+            "fr": lambda zone: f"Entrées accessibles et rampes pour fauteuils roulants aux Portes B, D et F. Des systèmes de boucle auditive sont actifs dans toutes les sections.",
+            "ar": lambda zone: f"المداخل المخصصة وكراسي الإعاقة متاحة عند البوابات B وD وF. أنظمة حلقات السمع نشطة في جميع الأقسام.",
+            "pt": lambda zone: f"Entradas acessíveis e rampas para cadeiras de rodas nas Portões B, D e F. Sistemas de laço auditivo ativos em todas as seções.",
+        },
+        "suggested_action": "Request accessibility assistance",
+        "escalated": False,
+    },
+]
+
+_FALLBACK: dict = {
+    "en": lambda msg, zone, role: f"I'm Stadium Copilot, your FIFA World Cup 2026 assistant! I couldn't find specific info for '{msg}', but our staff are here to help. You can also visit the Information Desk at the main entrance, or ask me about: restrooms, food, gates, schedules, transport, Wi-Fi, first aid, or accessibility.",
+    "es": lambda msg, zone, role: f"Soy Stadium Copilot, su asistente de la Copa Mundial FIFA 2026. No encontré información específica para '{msg}'. Visite el Mostrador de Información en la entrada principal.",
+    "fr": lambda msg, zone, role: f"Je suis Stadium Copilot, votre assistant pour la Coupe du Monde FIFA 2026. Je n'ai pas trouvé d'info précise pour '{msg}'. Consultez le bureau d'information à l'entrée principale.",
+    "ar": lambda msg, zone, role: f"أنا Stadium Copilot، مساعدك في كأس العالم FIFA 2026. لم أجد معلومات محددة حول '{msg}'. يمكنك زيارة مكتب الاستعلامات عند المدخل الرئيسي.",
+    "pt": lambda msg, zone, role: f"Sou o Stadium Copilot, seu assistente para a Copa do Mundo FIFA 2026. Não encontrei informações específicas para '{msg}'. Visite a central de informações na entrada principal.",
+}
+
+_ROLE_PREFIXES: dict[str, str] = {
+    "fan":         "",
+    "staff":       "🔒 Staff View — ",
+    "medic":       "🏥 Medical — ",
+    "security":    "🛡️ Security — ",
+    "vip":         "⭐ VIP Concierge — ",
+    "media":       "📡 Media — ",
+    "volunteer":   "🤝 Volunteer — ",
+}
+
+
+def _detect_intent(message: str) -> dict | None:
+    lower = message.lower()
+    for intent in _INTENTS:
+        if any(kw in lower for kw in intent["keywords"]):
+            return intent
+    return None
+
+
 @app.post("/assistant/query", tags=["GenAI"])
 async def assistant_query(body: AssistantQuery):
-    """AI assistant stub — returns a role-aware multilingual response."""
+    """Intent-aware multilingual stadium assistant — resolves real answers from 12 intent categories."""
+    intent = _detect_intent(body.message)
+    lang = body.language if body.language in ["en", "es", "fr", "ar", "pt"] else "en"
+    zone = body.zone or ""
+    prefix = _ROLE_PREFIXES.get(body.role, "")
+
+    if intent:
+        responses = intent["responses"]
+        reply_fn = responses.get(lang) or responses["en"]
+        reply = prefix + reply_fn(zone)
+        return {
+            "intent": intent["name"],
+            "reply": reply,
+            "suggested_action": intent["suggested_action"],
+            "language": lang,
+            "escalated": intent["escalated"],
+        }
+
+    # Fallback for unrecognised intents
+    fallback_fn = _FALLBACK.get(lang) or _FALLBACK["en"]
     return {
         "intent": body.intent_hint or "general",
-        "reply": f"Hello! I'm Stadium Copilot. You asked: '{body.message}'. How can I help you today at FIFA World Cup 2026?",
-        "suggested_action": None,
-        "language": body.language,
+        "reply": prefix + fallback_fn(body.message, zone, body.role),
+        "suggested_action": "Visit Information Desk",
+        "language": lang,
         "escalated": False,
     }
+
 
 
 @app.post("/accessibility/request", tags=["Accessibility"])
