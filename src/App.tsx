@@ -487,7 +487,7 @@ const FifaGallery: React.FC = () => {
 // ── Landing Page (main scrollable sections) ────────────────────────────────────
 const LandingPage: React.FC = () => (
   <>
-    <main id="main-content">
+    <div id="landing-content">
       <Hero />
       <SectionDivider />
       <LiveScoresSection />
@@ -497,7 +497,7 @@ const LandingPage: React.FC = () => (
       <AccessibilityForm />
       <SectionDivider />
       <FifaGallery />
-    </main>
+    </div>
     <Footer />
   </>
 );
@@ -508,7 +508,7 @@ const App: React.FC = () => {
     <BrowserRouter>
       <div className="min-h-screen bg-[var(--color-bg)]">
         <a
-          href="#chat"
+          href="#main-content"
           className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4
                      focus:z-[100] focus:px-4 focus:py-2 focus:rounded-lg
                      focus:bg-[var(--color-focus)] focus:text-black focus:font-bold"
@@ -518,22 +518,24 @@ const App: React.FC = () => {
 
         <Navbar />
 
-        <Suspense fallback={<PageLoader />}>
-          <Routes>
-            <Route path="/"          element={<LandingPage />} />
-            <Route path="/schedule"  element={<MatchSchedulePage />} />
-            <Route path="/venues"    element={<VenuesPage />} />
-            <Route path="/players"   element={<PlayersPage />} />
-            <Route path="/stadium"   element={<StadiumPage />} />
-            <Route path="/social"    element={<SocialWallPage />} />
-            <Route path="/predictor" element={<MatchPredictorPage />} />
-            <Route path="/bracket"   element={<BracketPage />} />
-            <Route path="/compare"   element={<PlayerComparePage />} />
-            <Route path="/fan-guide" element={<FanGuidePage />} />
-            <Route path="/media"     element={<MediaCentrePage />} />
-            <Route path="/help"      element={<HelpCentrePage />} />
-          </Routes>
-        </Suspense>
+        <main id="main-content" className="flex-grow">
+          <Suspense fallback={<PageLoader />}>
+            <Routes>
+              <Route path="/"          element={<LandingPage />} />
+              <Route path="/schedule"  element={<MatchSchedulePage />} />
+              <Route path="/venues"    element={<VenuesPage />} />
+              <Route path="/players"   element={<PlayersPage />} />
+              <Route path="/stadium"   element={<StadiumPage />} />
+              <Route path="/social"    element={<SocialWallPage />} />
+              <Route path="/predictor" element={<MatchPredictorPage />} />
+              <Route path="/bracket"   element={<BracketPage />} />
+              <Route path="/compare"   element={<PlayerComparePage />} />
+              <Route path="/fan-guide" element={<FanGuidePage />} />
+              <Route path="/media"     element={<MediaCentrePage />} />
+              <Route path="/help"      element={<HelpCentrePage />} />
+            </Routes>
+          </Suspense>
+        </main>
       </div>
     </BrowserRouter>
   );
